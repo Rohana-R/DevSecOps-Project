@@ -16,7 +16,7 @@ def COLOR_MAP = [
                 cleanWs()
             }
         }
-        stage('Checkout from Git'){
+        stage('GIT Checkout'){
             steps{
                 git branch: 'realease', url: 'https://github.com/Sushmaa123/DevSecOps-Project.git'
             }
