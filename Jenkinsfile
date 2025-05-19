@@ -1,9 +1,13 @@
-pipeline{
+def COLOR_MAP = [
+    'SUCCESS': 'good',
+    'FAILURE': 'danger'
+    ]
+    pipeline{
     agent any
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
-        IMAGE_NAME = "sushmaagowdaa/netflix" // Name of the image created in Jenkins
+        IMAGE_NAME = "rohana1234/netflix" // Name of the image created in Jenkins
         CONTAINER_NAME = "netflix" // Name of the container created in Jenkins
     }
     stages {
@@ -14,7 +18,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git 'https://github.com/Sushmaa123/DevSecOps-Project.git'
+                git branch: 'realease', url: 'https://github.com/Sushmaa123/DevSecOps-Project.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -94,8 +98,14 @@ post {
             body: "Project: ${env.JOB_NAME}<br/>" +
                 "Build Number: ${env.BUILD_NUMBER}<br/>" +
                 "URL: ${env.BUILD_URL}<br/>",
-            to: 'your-mail@gmail.com',                               
+            to: 'rohana.r.90@gmail.com',                               
             attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
+        }
+        always {
+            echo 'slack notification.'
+            slackSend channel: '#sq-netflix',
+            color: COLOR_MAP [currentBuild.currentResult],
+            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
         }
     }
 }
