@@ -23,7 +23,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'release', url: 'git@github.com:Rohana-R/DevSecOps-Project.git', credentailsID: git-ssh
+                git branch: 'release', url: 'git@github.com:Rohana-R/DevSecOps-Project.git', credentialsID: git-ssh
                 
             }
         }
