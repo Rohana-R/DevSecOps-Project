@@ -2,13 +2,17 @@ def COLOR_MAP = [
     'SUCCESS': 'good',
     'FAILURE': 'danger'
     ]
-    pipeline{
+pipeline{
     agent any
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
-        IMAGE_NAME = "rohana1234/netflix" // Name of the image created in Jenkins
-        CONTAINER_NAME = "netflix" // Name of the container created in Jenkins
+        IMAGE_NAME = "sushmaagowdaa/netflix" // Name of the image created in Jenkins
+        // CONTAINER_NAME1 = "netflix1" // Name of the container created in Jenkins
+        // CONTAINER_NAME2 = "netflix2"
+        // CONTAINER_NAME3 = "netflix3"
+        CONTAINERS = 'container1,container2,container3'
+        PORTS = '8082,8083,8084'
     }
     stages {
         stage('clean workspace'){
@@ -16,9 +20,9 @@ def COLOR_MAP = [
                 cleanWs()
             }
         }
-        stage('GIT Checkout'){
+        stage('Checkout from Git'){
             steps{
-                git branch: 'realease', url: 'https://github.com/Sushmaa123/DevSecOps-Project.git'
+                git branch: 'release-1', url: 'https://github.com/Rohana-R/DevSecOps-Project.git'
             }
         }
         stage("Sonarqube Analysis "){
@@ -44,29 +48,57 @@ def COLOR_MAP = [
                 sh "trivy fs . > trivyfs.txt"     
             }
         }
+        // stage('Clean Up Docker Resources') {
+        //     steps {
+        //         script {
+        //             // Remove the specific container
+        //             sh '''
+        //             if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
+        //                 echo "Stopping and removing container: $CONTAINER_NAME"
+        //                 docker stop $CONTAINER_NAME
+        //                 docker rm $CONTAINER_NAME
+        //             else
+        //                 echo "Container $CONTAINER_NAME does not exist."
+        //             fi
+        //             '''
+
+        //             // Remove the specific image
+        //             sh '''
+        //             if docker images -q $IMAGE_NAME; then
+        //                 echo "Removing image: $IMAGE_NAME"
+        //                 docker rmi -f $IMAGE_NAME
+        //             else
+        //                 echo "Image $IMAGE_NAME does not exist."
+        //             fi
+        //             '''
+        // //         }
+        // //     }
+        // // }
         stage('Clean Up Docker Resources') {
             steps {
                 script {
-                    // Remove the specific container
-                    sh '''
-                    if docker ps -a --format '{{.Names}}' | grep -q $CONTAINER_NAME; then
-                        echo "Stopping and removing container: $CONTAINER_NAME"
-                        docker stop $CONTAINER_NAME
-                        docker rm $CONTAINER_NAME
-                    else
-                        echo "Container $CONTAINER_NAME does not exist."
-                    fi
-                    '''
+                    def containerList = env.CONTAINERS.split(',')
 
-                    // Remove the specific image
-                    sh '''
+                    for (c in containerList) {
+                        sh """
+                        if docker ps -a --format '{{.Names}}' | grep -q ^${c}\$; then
+                            echo "Stopping and removing container: ${c}"
+                            docker stop ${c}
+                            docker rm ${c}
+                        else
+                            echo "Container ${c} does not exist."
+                        fi
+                        """
+                    }
+
+                    sh """
                     if docker images -q $IMAGE_NAME; then
                         echo "Removing image: $IMAGE_NAME"
                         docker rmi -f $IMAGE_NAME
                     else
                         echo "Image $IMAGE_NAME does not exist."
                     fi
-                    '''
+                    """
                 }
             }
         }
@@ -85,14 +117,23 @@ def COLOR_MAP = [
                 sh "trivy image $IMAGE_NAME > trivyimage.txt"
             }
         }
-        stage('Deploy to container'){
-            steps{
-                sh 'docker run -itd --name $CONTAINER_NAME -p 8081:80 $IMAGE_NAME'
+        stage('Deploy to container') {
+    steps {
+        script {
+            def containerList = env.CONTAINERS.split(',')         // e.g., web1,web2,web3
+            def portList = env.PORTS.split(',')                   // e.g., 8082,8083,8084
+
+            for (int i = 0; i < containerList.size(); i++) {
+                def container = containerList[i]
+                def port = portList[i]
+                sh "docker run -d --name ${container} -p ${port}:80 ${IMAGE_NAME}"
             }
         }
     }
+}
+    }
 post {
-     always {
+     failure {
         emailext attachLog: true,
             subject: "'${currentBuild.result}'",
             body: "Project: ${env.JOB_NAME}<br/>" +
@@ -101,12 +142,13 @@ post {
             to: 'rohana.r.90@gmail.com',                               
             attachmentsPattern: 'trivyfs.txt,trivyimage.txt'
         }
+
         always {
-            echo 'slack notification.'
-            slackSend channel: '#sq-netflix',
+            echo 'slack Notification.'
+            slackSend channel: '#multicont-netflix',
             color: COLOR_MAP [currentBuild.currentResult],
-            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URL}"
+            message: "*${currentBuild.currentResult}:* Job ${env.JOB_NAME} build ${env.BUILD_NUMBER} \n More info at: ${env.BUILD_URl}"
+            
         }
     }
 }
-
