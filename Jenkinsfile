@@ -5,6 +5,7 @@ def COLOR_MAP = [
 pipeline{
     agent any
     environment {
+        GIT_CRED = credentials('my-git-credentials-id')
         SCANNER_HOME=tool 'sonar-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
         IMAGE_NAME = "rohana1234/netflix" // Name of the image created in Jenkins
@@ -22,7 +23,8 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'release', url: 'https://github.com/Rohana-R/DevSecOps-Project.git'
+                git branch: 'release', url: 'https://github.com/Rohana-R/DevSecOps-Project.git', credentailsID: git-ssh
+                
             }
         }
         stage("Sonarqube Analysis "){
