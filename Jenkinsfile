@@ -22,7 +22,7 @@ pipeline{
         }
         stage('Checkout from Git'){
             steps{
-                git branch: 'release-1', url: 'https://github.com/Rohana-R/DevSecOps-Project.git'
+                git branch: 'release', url: 'https://github.com/Rohana-R/DevSecOps-Project.git'
             }
         }
         stage("Sonarqube Analysis "){
