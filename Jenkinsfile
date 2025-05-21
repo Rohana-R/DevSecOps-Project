@@ -7,7 +7,7 @@ pipeline{
     environment {
         SCANNER_HOME=tool 'sonar-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
-        IMAGE_NAME = "sushmaagowdaa/netflix" // Name of the image created in Jenkins
+        IMAGE_NAME = "rohana1234/netflix" // Name of the image created in Jenkins
         // CONTAINER_NAME1 = "netflix1" // Name of the container created in Jenkins
         // CONTAINER_NAME2 = "netflix2"
         // CONTAINER_NAME3 = "netflix3"
