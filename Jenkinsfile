@@ -5,7 +5,7 @@ def COLOR_MAP = [
 pipeline{
     agent any
     environment {
-        GIT_CRED = credentials('git-ssh')
+        GIT_CRED = 'git-ssh'
         SCANNER_HOME=tool 'sonar-scanner'
         TMDB_V3_API_KEY = credentials('tmdb-api-key')
         IMAGE_NAME = "rohana1234/netflix" // Name of the image created in Jenkins
